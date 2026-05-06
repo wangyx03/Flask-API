@@ -26,7 +26,7 @@ def gen_barcode(text):
         options = {
             'module_width': width / 100,
             'module_height': height,
-            'font_size': int(height),
+            'font_size': int(height*0.4),
             'text_distance': 10,
             'quiet_zone': 2,
         }
