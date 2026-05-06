@@ -26,8 +26,8 @@ def gen_barcode(text):
         options = {
             'module_width': width / 100,
             'module_height': height,
-            'font_size': int(height * 0.5),
-            'text_distance': 5,
+            'font_size': int(height * 0.3),
+            'text_distance': 10,
             'quiet_zone': 2,
         }
         if code_type == 'code39':
