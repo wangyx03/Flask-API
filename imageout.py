@@ -9,11 +9,23 @@ app = Flask(__name__)
 @app.route('/barcode/<text>')
 def gen_barcode(text):
     code_type = request.args.get('type', 'code128')
+    width = float(request.args.get('width', 100))
+    height = float(request.args.get('height', 30))
     try:
         bc_class = barcode.get_barcode_class(code_type)
-        bc = bc_class(text, writer=ImageWriter())
+        options = {
+            'module_width': width / 100,
+            'module_height': height,
+            'font_size': int(height * 0.3),
+            'text_distance': 3,
+            'quiet_zone': 2,
+        }
+        if code_type == 'code39':
+            bc = bc_class(text, writer=ImageWriter(), add_checksum=False)
+        else:
+            bc = bc_class(text, writer=ImageWriter())
         buf = BytesIO()
-        bc.write(buf)
+        bc.write(buf, options=options)
         buf.seek(0)
         return send_file(buf, mimetype='image/png')
     except Exception as e:
@@ -21,7 +33,9 @@ def gen_barcode(text):
 
 @app.route('/qrcode/<text>')
 def gen_qrcode(text):
-    img = qrcode.make(text)
+    size = int(request.args.get('size', 10))
+    border = int(request.args.get('border', 4))
+    img = qrcode.make(text, box_size=size, border=border)
     buf = BytesIO()
     img.save(buf, format='PNG')
     buf.seek(0)
