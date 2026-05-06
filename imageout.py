@@ -6,18 +6,28 @@ from io import BytesIO
 
 app = Flask(__name__)
 
-@app.route('/barcode/<text>')
+@app.route('/code/<text>')
 def gen_barcode(text):
     code_type = request.args.get('type', 'code128')
     width = float(request.args.get('width', 100))
     height = float(request.args.get('height', 30))
+    size = int(request.args.get('size', 10))
+    border = int(request.args.get('border', 4))
+
+    if code_type == 'qrcode':
+        img = qrcode.make(text, box_size=size, border=border)
+        buf = BytesIO()
+        img.save(buf, format='PNG')
+        buf.seek(0)
+        return send_file(buf, mimetype='image/png')
+
     try:
         bc_class = barcode.get_barcode_class(code_type)
         options = {
             'module_width': width / 100,
             'module_height': height,
-            'font_size': int(height * 0.3),
-            'text_distance': 3,
+            'font_size': int(height * 0.5),
+            'text_distance': 5,
             'quiet_zone': 2,
         }
         if code_type == 'code39':
@@ -30,16 +40,6 @@ def gen_barcode(text):
         return send_file(buf, mimetype='image/png')
     except Exception as e:
         return str(e), 400
-
-@app.route('/qrcode/<text>')
-def gen_qrcode(text):
-    size = int(request.args.get('size', 10))
-    border = int(request.args.get('border', 4))
-    img = qrcode.make(text, box_size=size, border=border)
-    buf = BytesIO()
-    img.save(buf, format='PNG')
-    buf.seek(0)
-    return send_file(buf, mimetype='image/png')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8503)
